@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mirians Suitcase | Shop Showcase</title>
+
+  <!-- ============ FAVICON PLACEHOLDER ============
+       Replace href with your own favicon file (32x32 .ico or .png works best) -->
+  <link rel="icon" type="image/png" href="https://i.imgur.com/lRW2sNs.jpeg">
+
+  <!-- ============ OPEN GRAPH / SOCIAL PREVIEW PLACEHOLDERS ============
+       These control how the link looks when shared on Instagram, iMessage, etc.
+       Replace all content="" values below with your own. -->
+  <meta property="og:title" content="Mirians Suitcase">
+  <meta property="og:description" content="ADD YOUR TAGLINE HERE — e.g. Handpicked pieces, updated weekly.">
+  <meta property="og:image" content="https://i.imgur.com/lRW2sNs.jpeg">
+  <meta property="og:url" content="ADD-YOUR-SITE-URL-HERE">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mirians Suitcase">
+  <meta name="twitter:description" content="ADD YOUR TAGLINE HERE">
+  <meta name="twitter:image" content="https://i.imgur.com/lRW2sNs.jpeg">
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #ffffff;
+    background-image:
+      /* corner glows */
+      radial-gradient(ellipse 70% 50% at 0% 0%, rgba(255, 20, 147, 0.1) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 100% 100%, rgba(255, 20, 147, 0.1) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 100% 0%, rgba(255, 105, 180, 0.07) 0%, transparent 50%),
+      radial-gradient(ellipse 40% 30% at 0% 100%, rgba(255, 105, 180, 0.07) 0%, transparent 50%),
+      /* subtle diagonal lines */
+      repeating-linear-gradient(
+        135deg,
+        transparent 0px,
+        transparent 40px,
+        rgba(255, 20, 147, 0.025) 40px,
+        rgba(255, 20, 147, 0.025) 41px
+      );
+    background-attachment: fixed;
+  }
+    /* ---------- Product Card ---------- */
+    .product-card {
+      cursor: pointer;
+    }
+
+    .card-carousel {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      border-radius: 0.75rem;
+      aspect-ratio: 3/4;
+      background: linear-gradient(100deg, #fdf2f8 30%, #fce7f3 50%, #fdf2f8 70%);
+      background-size: 200% 100%;
+      animation: shimmer 1.6s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* Crossfade stack: images sit on top of each other, only the active one is visible */
+    .card-slide {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+
+    .card-slide.active {
+      opacity: 1;
+    }
+
+    .card-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.9);
+      border-radius: 9999px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      z-index: 5;
+      border: none;
+    }
+
+    .card-carousel:hover .card-arrow,
+    .card-carousel:focus-within .card-arrow {
+      opacity: 1;
+    }
+
+    @media (hover: none) {
+      .card-arrow { opacity: 1; }
+    }
+
+    .card-arrow-left { left: 6px; }
+    .card-arrow-right { right: 6px; }
+
+    .card-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(236, 72, 153, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .card-dot.active {
+      background: rgb(236, 72, 153);
+      width: 16px;
+      border-radius: 4px;
+    }
+
+    .card-label {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: #be185d;
+      background: rgba(255,255,255,0.85);
+      padding: 2px 8px;
+      border-radius: 9999px;
+      z-index: 5;
+      text-transform: uppercase;
+    }
+
+    .new-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      color: white;
+      background: #ec4899;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      z-index: 6;
+      text-transform: uppercase;
+    }
+
+    /* ---------- Modal ---------- */
+    #modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(76, 29, 49, 0.45);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    #modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #modal-panel {
+      transform: translateY(12px) scale(0.98);
+      transition: transform 0.25s ease;
+    }
+
+    #modal-overlay.open #modal-panel {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-carousel {
+      position: relative;
+      overflow: hidden;
+      border-radius: 1rem;
+      aspect-ratio: 3/4;
+      background: linear-gradient(100deg, #fdf2f8 30%, #fce7f3 50%, #fdf2f8 70%);
+      background-size: 200% 100%;
+      animation: shimmer 1.6s infinite;
+    }
+
+    .modal-slide {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+
+    .modal-slide.active {
+      opacity: 1;
+    }
+
+    .size-pill {
+      transition: all 0.15s ease;
+    }
+
+    /* Accessible focus states everywhere interactive */
+    button:focus-visible,
+    .card-dot:focus-visible {
+      outline: 2px solid #ec4899;
+      outline-offset: 2px;
+    }
+
+    /* Sticky nav */
+    #main-nav {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+  </style>
+</head>
+<body class="bg-white min-h-screen tracking-tight relative">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-pink-100 pb-1 pt-4">
+    <div class="max-w-2xl mx-auto px-6 pt-2 flex flex-col items-center justify-center">
+      <div class="flex items-center gap-4 mb-3 flex-wrap justify-center">
+        <img src="https://i.imgur.com/lRW2sNs.jpeg" alt="Mirian Logo" class="rounded-3xl shadow w-32 h-32 object-contain border-2 border-pink-100 bg-white" />
+      </div>
+      <div class="text-[clamp(2.1rem,7vw,3.3rem)] font-extrabold text-pink-500 tracking-tight select-none font-[cursive] drop-shadow-md" style="font-family: 'Dancing Script',cursive; letter-spacing: 0.03em;">
+        Mirians Suitcase
+      </div>
+
+      <p id="site-bio" class="mt-3 max-w-md text-center text-sm sm:text-base text-gray-500 px-2">
+  Hi, I'm Mirian! 💗 I started The Suitcase to make it easy to get the pieces you love — no long shipping waits, no sizing stress. Browse what's in stock and reach out to claim anything you love. 💕
+  <span id="bio-more" class="hidden"> When the Victoria's Secret store in Grand Island closed back in 2020, I realized how frustrating it was to wait days for something to ship, only to find out it didn't fit. Shopping should be fun and exciting — not stressful. Thanks so much for being here and supporting my small business, it truly means the world to me. I hope I can help you find something you love and feel amazing wearing! 💕</span>
+  <button onclick="document.getElementById('bio-more').classList.toggle('hidden'); this.textContent = this.textContent === 'Read more' ? 'Show less' : 'Read more';" class="block mx-auto mt-1 text-pink-400 hover:text-pink-500 text-xs underline focus:outline-none">Read more</button>
+</p>
+    </div>
+  </header>      </p>
+    </div>
+  </header>
+
+  <!-- Tabs/Navigation -->
+ <nav id="main-nav" class="bg-pink-400 max-w-full mx-auto px-3 pt-2 pb-3 flex gap-2 justify-center flex-wrap border-b border-pink-100">
+  <button data-tab="hoodies" class="tab tab-active rounded-full px-8 py-3 transition-all focus:outline-none" style="font-family: 'Dancing Script', cursive; font-size: 1.6rem; font-weight: 800; color: white;">Hoodies <span class="tab-count text-sm font-sans"></span></button>
+  <button data-tab="bras" class="tab tab-inactive rounded-full px-8 py-3 transition-all focus:outline-none" style="font-family: 'Dancing Script', cursive; font-size: 1.5rem; font-weight: 800; color: white;">Bras <span class="tab-count text-sm font-sans"></span></button>
+  <button data-tab="underwear" class="tab tab-inactive rounded-full px-8 py-3 transition-all focus:outline-none" style="font-family: 'Dancing Script', cursive; font-size: 1.5rem; font-weight: 800; color: white;">Underwear <span class="tab-count text-sm font-sans"></span></button>
+  <button data-tab="perfume" class="tab tab-inactive rounded-full px-8 py-3 transition-all focus:outline-none" style="font-family: 'Dancing Script', cursive; font-size: 1.5rem; font-weight: 800; color: white;">Perfume <span class="tab-count text-sm font-sans"></span></button>
+  <button data-tab="lotion" class="tab tab-inactive rounded-full px-8 py-3 transition-all focus:outline-none" style="font-family: 'Dancing Script', cursive; font-size: 1.5rem; font-weight: 800; color: white;">Lotion <span class="tab-count text-sm font-sans"></span></button>
+</nav>
+<!-- How it works banner -->
+<div class="bg-pink-50 border-b border-pink-100 py-2 px-4 text-center text-sm text-pink-500" style="font-family: 'Dancing Script', cursive; font-size: 1rem;">
+  See something you love? DM me on Instagram or send me a message to claim it 🛍️
+</div>
+  <!-- Main Content -->
+  <main class="max-w-2xl mx-auto px-4 pb-16">
+
+    <div class="flex justify-end pt-4 pb-2">
+      <button id="sort-toggle" class="text-sm text-pink-500 border border-pink-200 rounded-full px-4 py-1.5 hover:bg-pink-50 transition focus:outline-none">
+        Sort: Newest First
+      </button>
+    </div>
+
+    <section id="section-hoodies" class="category-section block">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="grid-hoodies"></div>
+    </section>
+    <section id="section-bras" class="category-section hidden">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="grid-bras"></div>
+    </section>
+    <section id="section-underwear" class="category-section hidden">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="grid-underwear"></div>
+    </section>
+    <section id="section-perfume" class="category-section hidden">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="grid-perfume"></div>
+    </section>
+    <section id="section-lotion" class="category-section hidden">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="grid-lotion"></div>
+    </section>
+  </main>
+
+  <!-- ============ FOOTER / CONTACT PLACEHOLDER ============
+       This is the "how do I get this" path since there's no cart.
+       Replace the # hrefs with your real Instagram / email / WhatsApp links. -->
+  <footer class="border-t border-pink-100 mt-8 py-10 px-4 text-center">
+    <div class="flex justify-center gap-6 flex-wrap text-sm">
+      <a href="#" id="footer-instagram" class="text-pink-600 hover:text-pink-400 transition font-medium">Instagram — ADD @HANDLE</a>
+      <a href="#" id="footer-email" class="text-pink-600 hover:text-pink-400 transition font-medium">Email — ADD ADDRESS</a>
+      <a href="#" id="footer-whatsapp" class="text-pink-600 hover:text-pink-400 transition font-medium">WhatsApp — ADD NUMBER</a>
+    </div>
+    <p class="text-gray-300 text-xs mt-8">© 2026 Mirians Suitcase. Showcase only — not an online store.</p>
+  </footer>
+
+  <!-- Quick View Modal -->
+  <div id="modal-overlay">
+    <div id="modal-panel" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto relative">
+      <button id="modal-close" aria-label="Close" class="absolute top-3 right-3 z-20 bg-white/90 hover:bg-white rounded-full w-9 h-9 flex items-center justify-center shadow border border-pink-100">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M2 2L14 14M14 2L2 14" stroke="#be185d" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <div class="p-5">
+        <div class="modal-carousel mb-3">
+          <div id="modal-track"></div>
+          <button class="card-arrow card-arrow-left" id="modal-arrow-left" style="opacity:1;" aria-label="Previous image">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="#ec4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="card-arrow card-arrow-right" id="modal-arrow-right" style="opacity:1;" aria-label="Next image">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="#ec4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+
+        <div class="flex justify-center gap-2 mb-4" id="modal-dots"></div>
+
+        <h2 id="modal-name" class="text-2xl font-semibold text-pink-600 mb-4" style="font-family:'Dancing Script',cursive;"></h2>
+
+        <div id="modal-sizes-wrap" class="mb-1">
+          <div class="text-xs font-semibold text-pink-400 uppercase tracking-wide mb-2">Available Sizes</div>
+          <div id="modal-sizes" class="flex gap-2 flex-wrap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ============ PRODUCT DATA ============
+       Every product has the same shape so every card/modal renders identically.
+       - images: [ {src, label}, ... ]
+       - isNew: shows a "New" badge on the card
+       - dateAdded: used by the "Newest First" sort toggle — update when you add real photos
+    */
+    const PLACEHOLDER = (text) => `https://placehold.co/300x400/fdf2f8/be185d?text=${encodeURIComponent(text)}`;
+
+    const PRODUCTS = {
+      hoodies: [
+        { id:"h1", name:"Mirian Vintage Hoodie", sizes:["XS","S","M","L","XL"], isNew:true, dateAdded:"2026-07-18",
+          images:[{src:PLACEHOLDER("Product+Image"),label:"Product"},{src:PLACEHOLDER("Model+Image"),label:"Model"}] },
+        { id:"h2", name:"Mirian Vintage Hoodie", sizes:["XS","S","M","L","XL"], isNew:false, dateAdded:"2026-07-10",
+          images:[{src:PLACEHOLDER("Product+Image"),label:"Product"},{src:PLACEHOLDER("Model+Image"),label:"Model"}] },
+        ...Array.from({length: 5}, (_, i) => ({
+          id: `h${i+3}`,
+          name: "Mirian Vintage Hoodie",
+          sizes: ["S","M","L","XL"],
+          isNew: false,
+          dateAdded: `2026-06-${20 - i}`,
+          images: [
+            { src: PLACEHOLDER("Product+Image"), label: "Product" },
+            { src: PLACEHOLDER("Model+Image"), label: "Model" }
+          ]
+        }))
+      ],
+      bras: [
+        { id:"b1", name:"Lace Bralette", sizes:["32B","34B","32C","34C","36C"], isNew:true, dateAdded:"2026-07-15",
+          images:[{src:PLACEHOLDER("Product+Image"),label:"Product"},{src:PLACEHOLDER("Model+Image"),label:"Model"}] },
+        { id:"b2", name:"Everyday Comfort Bra", sizes:["32B","34B","32C","34C","36C"], isNew:false, dateAdded:"2026-07-01",
+          images:[{src:PLACEHOLDER("Product+Image"),label:"Product"},{src:PLACEHOLDER("Model+Image"),label:"Model"}] },
+        { id:"b3", name:"Strapless Wonder Bra", sizes:["32B","34B","32C","34C","36C"], isNew:false, dateAdded:"2026-06-25",
+          images:[{src:PLACEHOLDER("Product+Image"),label:"Product"},{src:PLACEHOLDER("Model+Image"),label:"Model"}] }
+      ],
+      underwear: [
+        { id:"u1", name:"Soft Bikini Brief", sizes:["XS","S","M","L","XL"], isNew:false, dateAdded:"2026-07-05",
+          images:[{src:PLACEHOLDER("Product+Image"),label:"Product"},{src:PLACEHOLDER("Model+Image"),label:"Model"}] },
+        { id:"u2", name:"High-Rise Cotton", sizes:["XS","S","M","L","XL"], isNew:false, dateAdded:"2026-06-28",
+          images:[{src:PLACEHOLDER("Product+Image"),label:"Product"},{src:PLACEHOLDER("Model+Image"),label:"Model"}] },
+        { id:"u3", name:"Lacey Thong", sizes:["XS","S","M","L","XL"], isNew:false, dateAdded:"2026-06-20",
+          images:[{src:PLACEHOLDER("Product+Image"),label:"Product"},{src:PLACEHOLDER("Model+Image"),label:"Model"}] }
+      ],
+      perfume: [
+        { id:"p1", name:"Blossom Mist", sizes:["30ml","50ml"], isNew:false, dateAdded:"2026-07-02",
+          images:[{src:PLACEHOLDER("Product+Image"),label:"Product"},{src:PLACEHOLDER("Lifestyle+Image"),label:"Lifestyle"}] },
+        { id:"p2", name:"Mirian Eau de Parfum", sizes:["30ml","50ml"], isNew:false, dateAdded:"2026-06-22",
+          images:[{src:PLACEHOLDER("Product+Image"),label:"Product"},{src:PLACEHOLDER("Lifestyle+Image"),label:"Lifestyle"}] },
+        { id:"p3", name:"Velvet Petals", sizes:["30ml","50ml"], isNew:false, dateAdded:"2026-06-15",
+          images:[{src:PLACEHOLDER("Product+Image"),label:"Product"},{src:PLACEHOLDER("Lifestyle+Image"),label:"Lifestyle"}] }
+      ],
+      lotion: [
+        { id:"l1", name:"Hydrating Body Lotion", sizes:["8oz","16oz"], isNew:false, dateAdded:"2026-07-08",
+          images:[{src:PLACEHOLDER("Product+Image"),label:"Product"},{src:PLACEHOLDER("Lifestyle+Image"),label:"Lifestyle"}] },
+        { id:"l2", name:"Silky Smooth Cream", sizes:["8oz","16oz"], isNew:false, dateAdded:"2026-06-30",
+          images:[{src:PLACEHOLDER("Product+Image"),label:"Product"},{src:PLACEHOLDER("Lifestyle+Image"),label:"Lifestyle"}] },
+        { id:"l3", name:"Nourishing Body Butter", sizes:["8oz","16oz"], isNew:false, dateAdded:"2026-06-18",
+          images:[{src:PLACEHOLDER("Product+Image"),label:"Product"},{src:PLACEHOLDER("Lifestyle+Image"),label:"Lifestyle"}] }
+      ]
+    };
+
+    let sortNewestFirst = true;
+
+    function getSortedProducts(category) {
+      const list = [...PRODUCTS[category]];
+      if (sortNewestFirst) {
+        list.sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded));
+      }
+      return list;
+    }
+
+    /* ============ SWIPE HELPER ============ */
+    function addSwipeSupport(el, onSwipeLeft, onSwipeRight) {
+      let startX = 0;
+      el.addEventListener("touchstart", (e) => { startX = e.touches[0].clientX; }, { passive: true });
+      el.addEventListener("touchend", (e) => {
+        const endX = e.changedTouches[0].clientX;
+        const delta = endX - startX;
+        if (Math.abs(delta) < 40) return;
+        if (delta < 0) onSwipeLeft(); else onSwipeRight();
+      }, { passive: true });
+    }
+
+    /* ============ CARD RENDERING ============ */
+    function buildCard(product) {
+      const card = document.createElement("div");
+      card.className = "product-card rounded-2xl bg-white shadow-xl p-4 flex flex-col text-center items-center border-2 border-pink-100 relative";
+      card.dataset.id = product.id;
+
+      const carousel = document.createElement("div");
+      carousel.className = "card-carousel w-full mb-4 shadow-md";
+
+      if (product.isNew) {
+        const badge = document.createElement("div");
+        badge.className = "new-badge";
+        badge.textContent = "New";
+        carousel.appendChild(badge);
+      }
+
+      product.images.forEach((img, i) => {
+        const el = document.createElement("img");
+        el.src = img.src;
+        el.alt = `${product.name} - ${img.label}`;
+        el.loading = "lazy";
+        el.decoding = "async";
+        el.className = "card-slide" + (i === 0 ? " active" : "");
+        carousel.appendChild(el);
+      });
+
+      const label = document.createElement("div");
+      label.className = "card-label";
+      label.textContent = product.images[0].label;
+      carousel.appendChild(label);
+
+      const leftBtn = document.createElement("button");
+      leftBtn.className = "card-arrow card-arrow-left";
+      leftBtn.setAttribute("aria-label", "Previous image");
+      leftBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="#ec4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+      const rightBtn = document.createElement("button");
+      rightBtn.className = "card-arrow card-arrow-right";
+      rightBtn.setAttribute("aria-label", "Next image");
+      rightBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="#ec4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+      carousel.appendChild(leftBtn);
+      carousel.appendChild(rightBtn);
+
+      const dots = document.createElement("div");
+      dots.className = "flex gap-1.5 mb-3";
+      product.images.forEach((_, i) => {
+        const dot = document.createElement("div");
+        dot.className = "card-dot" + (i === 0 ? " active" : "");
+        dots.appendChild(dot);
+      });
+
+      let current = 0;
+      const slides = [...carousel.querySelectorAll(".card-slide")];
+      function update() {
+        slides.forEach((s, i) => s.classList.toggle("active", i === current));
+        [...dots.children].forEach((d, i) => d.classList.toggle("active", i === current));
+        label.textContent = product.images[current].label;
+      }
+      function step(dir, e) {
+        if (e) e.stopPropagation();
+        current = (current + dir + product.images.length) % product.images.length;
+        update();
+      }
+      leftBtn.addEventListener("click", (e) => step(-1, e));
+      rightBtn.addEventListener("click", (e) => step(1, e));
+      addSwipeSupport(carousel, () => step(1), () => step(-1));
+
+      const title = document.createElement("h3");
+      title.className = "font-semibold text-lg text-pink-600 mb-3";
+      title.style.fontFamily = "'Dancing Script',cursive";
+      title.textContent = product.name;
+
+      const btn = document.createElement("button");
+      btn.className = "bg-pink-500 hover:bg-pink-400 transition text-white font-bold py-2 px-6 rounded-full shadow-lg focus:outline-none mt-1";
+      btn.textContent = "View";
+      btn.addEventListener("click", (e) => { e.stopPropagation(); openModal(product); });
+
+      card.appendChild(carousel);
+      card.appendChild(dots);
+      card.appendChild(title);
+      card.appendChild(btn);
+
+      card.addEventListener("click", () => openModal(product));
+
+      return card;
+    }
+
+    function renderGrid(category) {
+      const grid = document.getElementById(`grid-${category}`);
+      grid.innerHTML = "";
+      getSortedProducts(category).forEach(p => grid.appendChild(buildCard(p)));
+    }
+
+    function renderAllGrids() {
+      Object.keys(PRODUCTS).forEach(renderGrid);
+    }
+
+    function updateTabCounts() {
+      Object.keys(PRODUCTS).forEach(category => {
+        const el = document.querySelector(`[data-tab="${category}"] .tab-count`);
+        if (el) el.textContent = `(${PRODUCTS[category].length})`;
+      });
+    }
+
+    renderAllGrids();
+    updateTabCounts();
+
+    /* ============ SORT TOGGLE ============ */
+    document.getElementById("sort-toggle").addEventListener("click", (e) => {
+      sortNewestFirst = !sortNewestFirst;
+      e.target.textContent = sortNewestFirst ? "Sort: Newest First" : "Sort: Default Order";
+      renderAllGrids();
+    });
+
+    /* ============ TAB SWITCHING ============ */
+    const tabs = ["hoodies", "bras", "underwear", "perfume", "lotion"];
+    tabs.forEach(category => {
+      document.querySelector(`[data-tab="${category}"]`).addEventListener("click", () => {
+        tabs.forEach(cat => {
+          document.getElementById(`section-${cat}`).classList.add("hidden");
+          document.querySelector(`[data-tab="${cat}"]`).classList.remove("tab-active");
+          document.querySelector(`[data-tab="${cat}"]`).classList.add("tab-inactive");
+        });
+        document.getElementById(`section-${category}`).classList.remove("hidden");
+        document.querySelector(`[data-tab="${category}"]`).classList.remove("tab-inactive");
+        document.querySelector(`[data-tab="${category}"]`).classList.add("tab-active");
+      });
+    });
+
+    /* ============ MODAL ============ */
+    const overlay = document.getElementById("modal-overlay");
+    const modalTrack = document.getElementById("modal-track");
+    const modalDots = document.getElementById("modal-dots");
+    const modalName = document.getElementById("modal-name");
+    const modalSizesWrap = document.getElementById("modal-sizes-wrap");
+    const modalSizes = document.getElementById("modal-sizes");
+    const modalArrowLeft = document.getElementById("modal-arrow-left");
+    const modalArrowRight = document.getElementById("modal-arrow-right");
+    const modalCarouselEl = document.querySelector(".modal-carousel");
+
+    let modalSlideIndex = 0;
+    let activeProduct = null;
+
+    function openModal(product) {
+      activeProduct = product;
+      modalSlideIndex = 0;
+
+      modalTrack.innerHTML = "";
+      product.images.forEach((img, i) => {
+        const el = document.createElement("img");
+        el.src = img.src;
+        el.alt = `${product.name} - ${img.label}`;
+        el.loading = "lazy";
+        el.className = "modal-slide" + (i === 0 ? " active" : "");
+        modalTrack.appendChild(el);
+      });
+
+      modalDots.innerHTML = "";
+      product.images.forEach((_, i) => {
+        const dot = document.createElement("div");
+        dot.className = "card-dot" + (i === 0 ? " active" : "");
+        dot.style.cursor = "pointer";
+        dot.tabIndex = 0;
+        dot.addEventListener("click", () => { modalSlideIndex = i; updateModalCarousel(); });
+        modalDots.appendChild(dot);
+      });
+
+      modalName.textContent = product.name;
+
+      modalSizes.innerHTML = "";
+      if (product.sizes && product.sizes.length) {
+        modalSizesWrap.classList.remove("hidden");
+        product.sizes.forEach((size) => {
+          const pill = document.createElement("span");
+          pill.className = "size-pill border border-pink-200 rounded-full px-3 py-1 text-sm text-pink-600 bg-white";
+          pill.textContent = size;
+          modalSizes.appendChild(pill);
+        });
+      } else {
+        modalSizesWrap.classList.add("hidden");
+      }
+
+      updateModalCarousel();
+      overlay.classList.add("open");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeModal() {
+      overlay.classList.remove("open");
+      document.body.style.overflow = "";
+    }
+
+    function updateModalCarousel() {
+      [...modalTrack.children].forEach((s, i) => s.classList.toggle("active", i === modalSlideIndex));
+      [...modalDots.children].forEach((d, i) => d.classList.toggle("active", i === modalSlideIndex));
+    }
+
+    modalArrowLeft.addEventListener("click", () => {
+      modalSlideIndex = (modalSlideIndex - 1 + activeProduct.images.length) % activeProduct.images.length;
+      updateModalCarousel();
+    });
+    modalArrowRight.addEventListener("click", () => {
+      modalSlideIndex = (modalSlideIndex + 1) % activeProduct.images.length;
+      updateModalCarousel();
+    });
+    addSwipeSupport(modalCarouselEl,
+      () => modalArrowRight.click(),
+      () => modalArrowLeft.click()
+    );
+
+    document.getElementById("modal-close").addEventListener("click", closeModal);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) closeModal(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+  </script>
+</body>
+</html>
